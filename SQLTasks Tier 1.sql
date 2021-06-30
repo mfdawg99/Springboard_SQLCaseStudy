@@ -244,11 +244,90 @@ QUESTIONS:
 The output of facility name and total revenue, sorted by revenue. Remember
 that there's a different cost for guests and members! */
 
+SELECT
+  name,
+  SUM((membercost * slots) + (guestcost * slots)) AS revenue
+FROM
+    Facilities
+LEFT JOIN
+    Bookings as book
+ON
+    book.facid = Facilities.facid
+GROUP BY
+    name
+ORDER BY
+    revenue DESC;
+
 /* Q11: Produce a report of members and who recommended them in alphabetic surname,firstname order */
 
+SELECT DISTINCT
+  surname,
+  firstname, 
+  recommendedby
+FROM
+    Facilities
+LEFT JOIN
+    Bookings as book
+    ON
+        book.facid = Facilities.facid
+LEFT JOIN
+    Members as mem
+    ON
+        mem.memid = book.memid
+WHERE 
+        recommendedby NOT LIKE ("")
+    AND
+        surname NOT LIKE('%GUEST')
+ORDER BY
+    recommendedby DESC;
 
 /* Q12: Find the facilities with their usage by member, but not guests */
 
+SELECT 
+    count(slots) AS totalslots,
+    surname || ', ' || firstname as membername
+FROM
+    Facilities
+LEFT JOIN
+    Bookings as book
+    ON
+        book.facid = Facilities.facid
+LEFT JOIN
+    Members as mem
+    ON
+        mem.memid = book.memid
+WHERE
+        membername NOT LIKE ("%GUEST%")
+    AND 
+        mem.memid != 0
+GROUP BY
+    membername
+ORDER BY
+    totalslots DESC
+;
 
 /* Q13: Find the facilities usage by month, but not guests */
 
+SELECT 
+SUBSTR(starttime,6,2) AS month,
+    name,
+    SUM(slots) AS totalslots
+FROM
+    Facilities
+LEFT JOIN
+    Bookings as book
+    ON
+        book.facid = Facilities.facid
+LEFT JOIN
+    Members as mem
+    ON
+        mem.memid = book.memid
+WHERE
+        surname NOT LIKE ("%GUEST%")
+    AND 
+        mem.memid != 0
+GROUP BY
+    name, month
+ORDER BY
+    name
+    ;
